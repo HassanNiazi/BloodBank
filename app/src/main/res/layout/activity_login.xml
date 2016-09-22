@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_login"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorAccent"
+    tools:context="com.example.hash.bloodbank.LoginActivity">
+
+
+    <Button
+        android:text="Sign in"
+        android:layout_width="206dp"
+        android:layout_height="68dp"
+        android:id="@+id/signInWithEmailButton"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:background="@color/emailSignInButton"
+      />
+
+    <Button
+        android:text="Sign Up"
+        android:layout_width="206dp"
+        android:layout_height="68dp"
+        android:id="@+id/signUpWithEmailButton"
+
+
+        android:background="@color/emailSignUpButton"
+        app:layout_constraintBottom_toBottomOf="@+id/signInWithEmailButton"
+        app:layout_constraintTop_toTopOf="@+id/signInWithEmailButton"
+        app:layout_constraintLeft_toRightOf="@+id/signInWithEmailButton"
+      />
+
+</android.support.constraint.ConstraintLayout>
