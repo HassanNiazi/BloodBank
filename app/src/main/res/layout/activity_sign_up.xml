@@ -13,7 +13,7 @@
         android:inputType="textPersonName"
         android:text="@string/name"
         android:ems="10"
-        android:id="@+id/editText"
+        android:id="@+id/userName"
         tools:layout_constraintBottom_creator="1"
         android:layout_marginStart="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -26,14 +26,14 @@
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginRight="16dp" />
 
-    <com.example.hash.bloodbank.RoundedImageView
+    <ImageView
         android:layout_width="0dp"
         android:layout_height="0dp"
         tools:layout_constraintTop_creator="1"
         android:id="@+id/roundedImageView"
         android:layout_marginTop="16dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/editText"
+        app:layout_constraintBottom_toTopOf="@+id/userName"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="16dp"
         app:layout_constraintRight_toRightOf="parent"
@@ -46,15 +46,29 @@
 
     <Button
         android:text="@string/set_image"
-        android:layout_width="103dp"
-        android:layout_height="51dp"
-        android:id="@+id/button2"
-        app:layout_constraintRight_toRightOf="parent"
+        android:layout_width="235dp"
+        android:layout_height="49dp"
+        android:id="@+id/uploadPhoto"
+        android:background="@color/colorPrimary"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginBottom="16dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/editText"
-        app:layout_constraintVertical_bias="0.31" />
+        app:layout_constraintTop_toBottomOf="@+id/userName"
+        app:layout_constraintVertical_bias="0.19"
+        android:layout_marginStart="32dp"
+        android:layout_marginLeft="32dp" />
+
+    <Button
+        android:text="@string/done"
+        android:layout_width="88dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/done_sign_up"
+        android:background="@color/colorPrimary"
+        app:layout_constraintTop_toTopOf="@+id/uploadPhoto"
+        app:layout_constraintLeft_toRightOf="@+id/uploadPhoto"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginRight="16dp"
+        app:layout_constraintBottom_toBottomOf="@+id/uploadPhoto" />
 
 </android.support.constraint.ConstraintLayout>
