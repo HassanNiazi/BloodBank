@@ -29,15 +29,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     // UI Controls
 
-    Button emailSignIn , emailSignUp;
-    EditText emailEditText,passwordEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         TwitterAuthConfig authConfig = new TwitterAuthConfig(TWITTER_KEY, TWITTER_SECRET);
-        Fabric.with(this, new TwitterCore(authConfig), new Digits.Builder().build());
-
+        Digits.Builder digitsBuilder = new Digits.Builder().withTheme(R.style.CustomDigitsTheme);
+        Fabric.with(this, new TwitterCore(authConfig), digitsBuilder.build());
 
 
         setContentView(R.layout.activity_login);
@@ -48,7 +46,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
 
         //Digits
+
         DigitsAuthButton digitsButton = (DigitsAuthButton) findViewById(R.id.auth_button);
+        digitsButton.setText("Sign Up Using Phone Number");
         digitsButton.setCallback(new AuthCallback() {
             @Override
             public void success(DigitsSession session, String phoneNumber) {
