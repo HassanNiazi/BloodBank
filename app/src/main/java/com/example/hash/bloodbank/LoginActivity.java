@@ -1,8 +1,11 @@
 package com.example.hash.bloodbank;
 
+import android.content.Intent;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.Manifest;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -38,6 +41,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         Fabric.with(this, new TwitterCore(authConfig), digitsBuilder.build());
 
 
+        final Intent intent = new Intent(this,SignUp.class);
         setContentView(R.layout.activity_login);
         //UI Initialization
 
@@ -47,6 +51,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         //Digits
 
+        int permissionCheck = ContextCompat.checkSelfPermission(LoginActivity.this,
+                Manifest.permission.WRITE_CALENDAR);
+
         DigitsAuthButton digitsButton = (DigitsAuthButton) findViewById(R.id.auth_button);
         digitsButton.setText("Sign Up Using Phone Number");
         digitsButton.setCallback(new AuthCallback() {
@@ -55,6 +62,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 // TODO: associate the session userID with your user model
                 Toast.makeText(getApplicationContext(), "Authentication successful for "
                         + phoneNumber, Toast.LENGTH_LONG).show();
+                intent.putExtra(getResources().getString(R.string.phoneNo),phoneNumber);
+                startActivity(intent);
             }
 
             @Override
@@ -66,16 +75,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     }
 
-
-    @Override
-    public void onStart() {
-
-    }
-
-    @Override
-    public void onStop() {
-
-    }
 
     @Override
     public void onClick(View v) {
