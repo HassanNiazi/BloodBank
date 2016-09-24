@@ -53,16 +53,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         //Digits
 
-        int permissionCheck = ContextCompat.checkSelfPermission(LoginActivity.this,
+        int permissionCheck = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.SEND_SMS);
 
         if(permissionCheck == PackageManager.PERMISSION_GRANTED)
         {
             Toast.makeText(this, "Permission Already Granted", Toast.LENGTH_SHORT).show();
+//            Log.d("There", "onCreate: Granted");
         }
         else
         {
             ActivityCompat.requestPermissions(LoginActivity.this, new String[]{ Manifest.permission.SEND_SMS},0);
+//            Log.d("Here", "onCreate: Not Granted");
         }
 
         DigitsAuthButton digitsButton = (DigitsAuthButton) findViewById(R.id.auth_button);

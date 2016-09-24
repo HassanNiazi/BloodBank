@@ -1,35 +1,49 @@
 package com.example.hash.bloodbank;
+import android.*;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.content.Intent;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.graphics.Bitmap;
+import android.widget.Toast;
+import android.Manifest;
+import android.Manifest.permission;
 
 
 public class SignUp extends AppCompatActivity implements View.OnClickListener{
     private static final int SELECT_PICTURE = 100;
     private static final int OPEN_CAMERA = 120;
+    private static final int MY_PERMISSIONS_REQUEST_CAMERA = 140;
     String path="";
-    ImageView imageView;
+    RoundedImageView imageView;
     EditText userName;
     String[] imageSource = {"Gallery","Camera"};
     String phoneNumber;
+    Button uploadPhoto,done;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
-        imageView = (ImageView) findViewById(R.id.roundedImageView);
+        imageView = (RoundedImageView) findViewById(R.id.roundedImageView);
         userName = (EditText) findViewById(R.id.userName);
         Intent intent = getIntent();
         phoneNumber = intent.getStringExtra(getResources().getString(R.string.phoneNo));
+        uploadPhoto = (Button) findViewById(R.id.uploadPhoto);
+        done = (Button) findViewById(R.id.done_sign_up);
+        uploadPhoto.setOnClickListener(this);
+        done.setOnClickListener(this);
 
     }
 
@@ -80,8 +94,10 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
 
     public void takePhoto()
     {
+
         Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(cameraIntent, OPEN_CAMERA);
+
     }
 
 
@@ -90,6 +106,7 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
         switch (v.getId())
         {
             case R.id.uploadPhoto:
+//                Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show();
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Choose Image Source")
                         .setItems(imageSource, new DialogInterface.OnClickListener() {
@@ -101,12 +118,50 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
                                         openImageChooser();
                                         break;
                                     case 1:
-                                        takePhoto();
+
+
+                                        if (ContextCompat.checkSelfPermission(SignUp.this,
+                                                permission.CAMERA)
+                                                != PackageManager.PERMISSION_GRANTED) {
+
+                                            // Should we show an explanation?
+                                            if (ActivityCompat.shouldShowRequestPermissionRationale(SignUp.this,
+                                                    Manifest.permission.CAMERA)) {
+
+                                                // Show an expanation to the user *asynchronously* -- don't block
+                                                // this thread waiting for the user's response! After the user
+                                                // sees the explanation, try again to request the permission.
+
+                                            } else {
+
+                                                // No explanation needed, we can request the permission.
+
+                                                ActivityCompat.requestPermissions(SignUp.this,
+                                                        new String[]{Manifest.permission.CAMERA},
+                                                        MY_PERMISSIONS_REQUEST_CAMERA);
+
+                                                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                                                // app-defined int constant. The callback method gets the
+                                                // result of the request.
+                                            }
+                                        }
+
+                                        if (ContextCompat.checkSelfPermission(SignUp.this,
+                                                permission.CAMERA)
+                                                == PackageManager.PERMISSION_GRANTED) {
+                                            takePhoto();
+                                        }
+                                        else {
+                                            Toast.makeText(SignUp.this, "You dont have Permission to take Pictures", Toast.LENGTH_SHORT).show();
+                                        }
+
+
                                         break;
                                 }
 
                             }
                         });
+                builder.show();
 
                 break;
             case R.id.done_sign_up:
