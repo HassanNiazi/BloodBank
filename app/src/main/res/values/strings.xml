@@ -17,4 +17,6 @@
     <string name="name">Name</string>
     <string name="set_image">Upload Profile Picture</string>
     <string name="done">Done</string>
+    <string name="phoneNo">PhoneNo</string>
+    <string name="title_activity_maps">Map</string>
 </resources>

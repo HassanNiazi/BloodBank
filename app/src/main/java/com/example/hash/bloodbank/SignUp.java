@@ -21,12 +21,16 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
     ImageView imageView;
     EditText userName;
     String[] imageSource = {"Gallery","Camera"};
+    String phoneNumber;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
         imageView = (ImageView) findViewById(R.id.roundedImageView);
         userName = (EditText) findViewById(R.id.userName);
+        Intent intent = getIntent();
+        phoneNumber = intent.getStringExtra(getResources().getString(R.string.phoneNo));
+
     }
 
 
@@ -86,9 +90,6 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
         switch (v.getId())
         {
             case R.id.uploadPhoto:
-//                openImageChooser();
-                //TODO : Add Camera Support
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Choose Image Source")
                         .setItems(imageSource, new DialogInterface.OnClickListener() {
@@ -107,7 +108,6 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
                             }
                         });
 
-
                 break;
             case R.id.done_sign_up:
                 if(userName.getText().toString().trim().equals(""))
@@ -116,7 +116,7 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
                 }
                 else
                 {
-
+                    // Mission is a Go
                 }
                 break;
         }
