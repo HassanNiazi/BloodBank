@@ -2,6 +2,8 @@ package com.example.hash.bloodbank;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +23,9 @@ import com.digits.sdk.android.DigitsSession;
 
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 import com.twitter.sdk.android.core.TwitterCore;
+
+import java.io.ByteArrayOutputStream;
+
 import io.fabric.sdk.android.Fabric;
 
 
@@ -75,6 +80,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 // TODO: associate the session userID with your user model
                 Toast.makeText(getApplicationContext(), "Authentication successful for "
                         + phoneNumber, Toast.LENGTH_LONG).show();
+                
                 intent.putExtra(getResources().getString(R.string.phoneNo),phoneNumber);
                 startActivity(intent);
             }
@@ -87,7 +93,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
 
     }
-
 
     @Override
     public void onClick(View v) {

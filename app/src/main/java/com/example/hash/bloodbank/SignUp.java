@@ -4,6 +4,8 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
@@ -11,6 +13,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -20,6 +23,8 @@ import android.graphics.Bitmap;
 import android.widget.Toast;
 import android.Manifest;
 import android.Manifest.permission;
+
+import java.io.ByteArrayOutputStream;
 
 
 public class SignUp extends AppCompatActivity implements View.OnClickListener{
@@ -32,6 +37,7 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
     String[] imageSource = {"Gallery","Camera"};
     String phoneNumber;
     Button uploadPhoto,done;
+    Bitmap bitmapUserImage;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,7 +50,9 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
         done = (Button) findViewById(R.id.done_sign_up);
         uploadPhoto.setOnClickListener(this);
         done.setOnClickListener(this);
+        bitmapUserImage = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
 
+        userName.setText(getApplicationContext().getResources().getConfiguration().locale.getDisplayName());
     }
 
 
@@ -61,16 +69,28 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
                     String path = getPathFromURI(selectedImageUri);
                     Log.i("ImageLoaded", "Image Path : " + path);
                     // Set the image in ImageView
-                    imageView.setImageURI(selectedImageUri);
+//                    imageView.setImageURI(selectedImageUri);
+                    bitmapUserImage = BitmapFactory.decodeFile(path);
+                    imageView.setImageBitmap(bitmapUserImage);
                 }
             }
             else if (requestCode == OPEN_CAMERA){
 
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
+                bitmapUserImage = photo;
                 imageView.setImageBitmap(photo);
 
             }
         }
+    }
+
+    private String bitmapToStringBase64(Bitmap bm)
+    {
+       //Bitmap bm  = BitmapFactory.decodeFile("/path/to/image.jpg");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bm.compress(Bitmap.CompressFormat.JPEG, 100, baos); //bm is the bitmap object
+        return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+
     }
 
     public String getPathFromURI(Uri contentUri) {
@@ -171,7 +191,11 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
                 }
                 else
                 {
-                    // Mission is a Go
+                    Intent intent = new Intent(this,MainActivity.class);
+                    intent.putExtra( getResources().getString(R.string.userNameKeyValue),userName.getText().toString());
+                    intent.putExtra( getResources().getString(R.string.phoneNo),phoneNumber);
+                    intent.putExtra( getResources().getString(R.string.userImageBase64),bitmapToStringBase64(bitmapUserImage));
+                    startActivity(intent);
                 }
                 break;
         }
