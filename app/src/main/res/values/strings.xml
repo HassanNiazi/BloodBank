@@ -101,4 +101,10 @@
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="GPSAlertDialogMessage">\"GPS Alert\"</string>
     <string name="cancel">Cancel</string>
+    <string name="blood_group">Blood Group</string>
+    <string name="country">Country</string>
+    <string name="email">Email</string>
+    <string name="gender">Gender</string>
+    <string name="userImageKey">image</string>
+    <string name="GPSAlertDialogTitle">GPS Alert</string>
 </resources>

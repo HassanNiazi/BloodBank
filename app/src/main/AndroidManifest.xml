@@ -42,7 +42,9 @@
             android:name="io.fabric.ApiKey"
             android:value="5fe7293709d590fa4f2e5ccbf7ec7e29a9d94a82" />
 
-        <activity android:name=".SignUp" />
+        <activity android:name=".SignUp"
+            android:windowSoftInputMode="stateVisible|adjustResize"
+            />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -62,9 +64,7 @@
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings" />
+
         <activity android:name=".PreferencesActivity"></activity>
     </application>
 

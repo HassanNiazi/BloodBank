@@ -1,5 +1,7 @@
 package com.example.hash.bloodbank;
+
 import android.*;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -7,6 +9,7 @@ import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -20,24 +23,31 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.graphics.Bitmap;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.Manifest;
 import android.Manifest.permission;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 
 
-public class SignUp extends AppCompatActivity implements View.OnClickListener{
+public class SignUp extends AppCompatActivity implements View.OnClickListener {
     private static final int SELECT_PICTURE = 100;
     private static final int OPEN_CAMERA = 120;
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 140;
-    String path="";
+    String path = "";
     RoundedImageView imageView;
     EditText userName;
-    String[] imageSource = {"Gallery","Camera"};
+    String[] imageSource = {"Gallery", "Camera"};
+    String[] bloodGroups = {"A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"};
     String phoneNumber;
-    Button uploadPhoto,done;
+    Button  done;
     Bitmap bitmapUserImage;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,13 +56,13 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
         userName = (EditText) findViewById(R.id.userName);
         Intent intent = getIntent();
         phoneNumber = intent.getStringExtra(getResources().getString(R.string.phoneNo));
-        uploadPhoto = (Button) findViewById(R.id.uploadPhoto);
         done = (Button) findViewById(R.id.done_sign_up);
-        uploadPhoto.setOnClickListener(this);
+        ((TextView)findViewById(R.id.bloodGroupSignUpEditText)).setOnClickListener(this);
         done.setOnClickListener(this);
-        bitmapUserImage = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+        imageView.setOnClickListener(this);
+        bitmapUserImage = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
 
-        userName.setText(getApplicationContext().getResources().getConfiguration().locale.getDisplayName());
+//        userName.setText(getApplicationContext().getResources().getConfiguration().locale.getDisplayName());
     }
 
 
@@ -69,12 +79,13 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
                     String path = getPathFromURI(selectedImageUri);
                     Log.i("ImageLoaded", "Image Path : " + path);
                     // Set the image in ImageView
-//                    imageView.setImageURI(selectedImageUri);
-                    bitmapUserImage = BitmapFactory.decodeFile(path);
-                    imageView.setImageBitmap(bitmapUserImage);
+                    imageView.setImageURI(selectedImageUri);
+
+                    bitmapUserImage = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+//                    bitmapUserImage = BitmapFactory.decodeFile(path);
+//                    imageView.setImageBitmap(bitmapUserImage);
                 }
-            }
-            else if (requestCode == OPEN_CAMERA){
+            } else if (requestCode == OPEN_CAMERA) {
 
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
                 bitmapUserImage = photo;
@@ -82,15 +93,6 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
 
             }
         }
-    }
-
-    private String bitmapToStringBase64(Bitmap bm)
-    {
-       //Bitmap bm  = BitmapFactory.decodeFile("/path/to/image.jpg");
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bm.compress(Bitmap.CompressFormat.JPEG, 100, baos); //bm is the bitmap object
-        return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
-
     }
 
     public String getPathFromURI(Uri contentUri) {
@@ -112,8 +114,7 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
         startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PICTURE);
     }
 
-    public void takePhoto()
-    {
+    public void takePhoto() {
 
         Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(cameraIntent, OPEN_CAMERA);
@@ -123,9 +124,8 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
 
     @Override
     public void onClick(View v) {
-        switch (v.getId())
-        {
-            case R.id.uploadPhoto:
+        switch (v.getId()) {
+            case R.id.roundedImageView:
 //                Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show();
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Choose Image Source")
@@ -133,7 +133,7 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
 
-                                switch (which){
+                                switch (which) {
                                     case 0:
                                         openImageChooser();
                                         break;
@@ -170,8 +170,7 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
                                                 permission.CAMERA)
                                                 == PackageManager.PERMISSION_GRANTED) {
                                             takePhoto();
-                                        }
-                                        else {
+                                        } else {
                                             Toast.makeText(SignUp.this, "You dont have Permission to take Pictures", Toast.LENGTH_SHORT).show();
                                         }
 
@@ -185,20 +184,74 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener{
 
                 break;
             case R.id.done_sign_up:
-                if(userName.getText().toString().trim().equals(""))
-                {
-                    userName.setError( "Name is required!" );
-                }
-                else
-                {
-                    Intent intent = new Intent(this,MainActivity.class);
-                    intent.putExtra( getResources().getString(R.string.userNameKeyValue),userName.getText().toString());
-                    intent.putExtra( getResources().getString(R.string.phoneNo),phoneNumber);
-                    intent.putExtra( getResources().getString(R.string.userImageBase64),bitmapToStringBase64(bitmapUserImage));
+                if (userName.getText().toString().trim().equals("")) {
+                    userName.setError("Name is required!");
+                } else {
+                    Intent intent = new Intent(this, PreferencesActivity.class);
+                    intent.putExtra(getResources().getString(R.string.userNameKeyValue), userName.getText().toString());
+                    intent.putExtra(getResources().getString(R.string.phoneNo), phoneNumber);
+                    intent.putExtra(getResources().getString(R.string.userImageKey), saveImageToInternalStorage(bitmapUserImage, getResources().getString(R.string.userImageKey)));
                     startActivity(intent);
                 }
                 break;
+
+            case R.id.bloodGroupSignUpEditText:
+
+                AlertDialog.Builder bloodGroupBuilder = new AlertDialog.Builder(this);
+                bloodGroupBuilder.setTitle("Choose Blood Group")
+                        .setItems(bloodGroups, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                ((TextView)findViewById(R.id.bloodGroupSignUpEditText)).setText("Blood Group ("+ bloodGroups[which]+ ")");
+                            }
+
+
+                        });
+                bloodGroupBuilder.show();
+                break;
+
         }
     }
+
+    public String saveImageToInternalStorage(Bitmap image, String filename) {
+
+        try {
+            FileOutputStream fos = this.openFileOutput(filename + ".png", Context.MODE_PRIVATE);
+            image.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            fos.close();
+        } catch (Exception e) {
+            Log.e("saveToInternalStorage()", e.getMessage());
+        }
+        return filename + ".png";
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_CAMERA: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    takePhoto();
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
+
 
 }

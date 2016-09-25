@@ -35,7 +35,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     // Note: Your consumer key and secret should be obfuscated in your source code before shipping.
     private static final String TWITTER_KEY = "Fto25uhjdYYi7hvrLHiZTq7xa";
     private static final String TWITTER_SECRET = "Fa7xPIip9FxSNzowmyRcBCtXh7EXh8GCGSWYHmUvBZdCDpENek";
-
+    private static final int  MY_PERMISSIONS_REQUEST_SMS = 200;
 
     // UI Controls
 
@@ -58,19 +58,60 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         //Digits
 
-        int permissionCheck = ContextCompat.checkSelfPermission(this,
-                Manifest.permission.SEND_SMS);
+//        int permissionCheck = ContextCompat.checkSelfPermission(this,
+//                Manifest.permission.SEND_SMS);
+//
+//        if(permissionCheck == PackageManager.PERMISSION_GRANTED)
+//        {
+//            Toast.makeText(this, "Permission Already Granted", Toast.LENGTH_SHORT).show();
+////            Log.d("There", "onCreate: Granted");
+//        }
+//        else
+//        {
+//            ActivityCompat.requestPermissions(LoginActivity.this, new String[]{ Manifest.permission.SEND_SMS},0);
+////            Log.d("Here", "onCreate: Not Granted");
+//        }
+//
+//
 
-        if(permissionCheck == PackageManager.PERMISSION_GRANTED)
-        {
-            Toast.makeText(this, "Permission Already Granted", Toast.LENGTH_SHORT).show();
-//            Log.d("There", "onCreate: Granted");
+
+        if (ContextCompat.checkSelfPermission(LoginActivity.this,
+                Manifest.permission.SEND_SMS)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(LoginActivity.this,
+                    Manifest.permission.SEND_SMS)) {
+
+                // Show an expanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(LoginActivity.this,
+                        new String[]{Manifest.permission.SEND_SMS},
+                        MY_PERMISSIONS_REQUEST_SMS);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
         }
-        else
-        {
-            ActivityCompat.requestPermissions(LoginActivity.this, new String[]{ Manifest.permission.SEND_SMS},0);
-//            Log.d("Here", "onCreate: Not Granted");
+
+        if (ContextCompat.checkSelfPermission(LoginActivity.this,
+                Manifest.permission.SEND_SMS)
+                == PackageManager.PERMISSION_GRANTED) {
+
+        } else {
+            Toast.makeText(LoginActivity.this, "SMS Permissions denied", Toast.LENGTH_SHORT).show();
         }
+
+
+
+
 
         DigitsAuthButton digitsButton = (DigitsAuthButton) findViewById(R.id.auth_button);
         digitsButton.setText("Sign Up Using Phone Number");
@@ -80,7 +121,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 // TODO: associate the session userID with your user model
                 Toast.makeText(getApplicationContext(), "Authentication successful for "
                         + phoneNumber, Toast.LENGTH_LONG).show();
-                
+
                 intent.putExtra(getResources().getString(R.string.phoneNo),phoneNumber);
                 startActivity(intent);
             }
