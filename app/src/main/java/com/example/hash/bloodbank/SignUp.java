@@ -148,6 +148,7 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener {
                                             if (ActivityCompat.shouldShowRequestPermissionRationale(SignUp.this,
                                                     Manifest.permission.CAMERA)) {
 
+
                                                 // Show an expanation to the user *asynchronously* -- don't block
                                                 // this thread waiting for the user's response! After the user
                                                 // sees the explanation, try again to request the permission.
@@ -160,7 +161,7 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener {
                                                         new String[]{Manifest.permission.CAMERA},
                                                         MY_PERMISSIONS_REQUEST_CAMERA);
 
-                                                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                                                // MY_PERMI Bitmap bitmap = getThumbnail(filename);SSIONS_REQUEST_READ_CONTACTS is an
                                                 // app-defined int constant. The callback method gets the
                                                 // result of the request.
                                             }
@@ -187,10 +188,12 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener {
                 if (userName.getText().toString().trim().equals("")) {
                     userName.setError("Name is required!");
                 } else {
-                    Intent intent = new Intent(this, PreferencesActivity.class);
+                    Intent intent = new Intent(this, MainActivity.class);
                     intent.putExtra(getResources().getString(R.string.userNameKeyValue), userName.getText().toString());
                     intent.putExtra(getResources().getString(R.string.phoneNo), phoneNumber);
                     intent.putExtra(getResources().getString(R.string.userImageKey), saveImageToInternalStorage(bitmapUserImage, getResources().getString(R.string.userImageKey)));
+                    intent.putExtra(getResources().getString(R.string.cityNameKey),((EditText)findViewById(R.id.citySignUpEditText)).getText().toString());
+                    intent.putExtra(getResources().getString(R.string.blood_group),((TextView)findViewById(R.id.bloodGroupSignUpEditText)).getText().toString());
                     startActivity(intent);
                 }
                 break;
