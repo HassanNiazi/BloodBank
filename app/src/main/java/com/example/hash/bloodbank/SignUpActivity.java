@@ -1,41 +1,32 @@
 package com.example.hash.bloodbank;
 
-import android.*;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.graphics.Bitmap;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.Manifest;
 import android.Manifest.permission;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
 
 
-public class SignUp extends AppCompatActivity implements View.OnClickListener {
+public class SignUpActivity extends AppCompatActivity implements View.OnClickListener {
     private static final int SELECT_PICTURE = 100;
     private static final int OPEN_CAMERA = 120;
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 140;
@@ -140,12 +131,12 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener {
                                     case 1:
 
 
-                                        if (ContextCompat.checkSelfPermission(SignUp.this,
+                                        if (ContextCompat.checkSelfPermission(SignUpActivity.this,
                                                 permission.CAMERA)
                                                 != PackageManager.PERMISSION_GRANTED) {
 
                                             // Should we show an explanation?
-                                            if (ActivityCompat.shouldShowRequestPermissionRationale(SignUp.this,
+                                            if (ActivityCompat.shouldShowRequestPermissionRationale(SignUpActivity.this,
                                                     Manifest.permission.CAMERA)) {
 
 
@@ -157,7 +148,7 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener {
 
                                                 // No explanation needed, we can request the permission.
 
-                                                ActivityCompat.requestPermissions(SignUp.this,
+                                                ActivityCompat.requestPermissions(SignUpActivity.this,
                                                         new String[]{Manifest.permission.CAMERA},
                                                         MY_PERMISSIONS_REQUEST_CAMERA);
 
@@ -167,12 +158,12 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener {
                                             }
                                         }
 
-                                        if (ContextCompat.checkSelfPermission(SignUp.this,
+                                        if (ContextCompat.checkSelfPermission(SignUpActivity.this,
                                                 permission.CAMERA)
                                                 == PackageManager.PERMISSION_GRANTED) {
                                             takePhoto();
                                         } else {
-                                            Toast.makeText(SignUp.this, "You dont have Permission to take Pictures", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(SignUpActivity.this, "You dont have Permission to take Pictures", Toast.LENGTH_SHORT).show();
                                         }
 
 
@@ -194,6 +185,7 @@ public class SignUp extends AppCompatActivity implements View.OnClickListener {
                     intent.putExtra(getResources().getString(R.string.userImageKey), saveImageToInternalStorage(bitmapUserImage, getResources().getString(R.string.userImageKey)));
                     intent.putExtra(getResources().getString(R.string.cityNameKey),((EditText)findViewById(R.id.citySignUpEditText)).getText().toString());
                     intent.putExtra(getResources().getString(R.string.blood_group),((TextView)findViewById(R.id.bloodGroupSignUpEditText)).getText().toString());
+                    intent.putExtra(getString(R.string.callingActivity), getString(R.string.SignUpActivity));
                     startActivity(intent);
                 }
                 break;

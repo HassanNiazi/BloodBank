@@ -35,6 +35,7 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+
             </intent-filter>
         </activity>
 
@@ -42,7 +43,7 @@
             android:name="io.fabric.ApiKey"
             android:value="5fe7293709d590fa4f2e5ccbf7ec7e29a9d94a82" />
 
-        <activity android:name=".SignUp"
+        <activity android:name=".SignUpActivity"
             android:windowSoftInputMode="stateVisible|adjustResize"
             />
         <!--

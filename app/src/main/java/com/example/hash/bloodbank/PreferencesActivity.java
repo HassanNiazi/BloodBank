@@ -29,15 +29,11 @@ import java.util.Locale;
 
 public class PreferencesActivity extends AppCompatActivity {
     String country = "null";
-    double lat,lng;
-
-//    EditText userName,email,countryTextBox;
-            EditText city;
+    double lat, lng;
+    EditText city;
     RoundedImageView roundedImageView;
-//    AutoCompleteTextView gender;
-          AutoCompleteTextView  bloodGroup;
+    AutoCompleteTextView bloodGroup;
     Button buttonDone;
-
 
 
     @Override
@@ -67,10 +63,7 @@ public class PreferencesActivity extends AppCompatActivity {
             String filename = intent.getStringExtra(getResources().getString(R.string.userImageKey));
             Bitmap bitmap = getThumbnail(filename);
             roundedImageView.setImageBitmap(bitmap);
-        }
-
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
         buttonDone.setOnClickListener(new View.OnClickListener() {
@@ -89,21 +82,18 @@ public class PreferencesActivity extends AppCompatActivity {
                     }
                 }
 
-                if (ContextCompat.checkSelfPermission(PreferencesActivity.this,  Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                if (ContextCompat.checkSelfPermission(PreferencesActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
 
                     GPSTracker gpsTracker = new GPSTracker(PreferencesActivity.this);
 
-                    if (gpsTracker.getIsGPSTrackingEnabled())
-                    {
+                    if (gpsTracker.getIsGPSTrackingEnabled()) {
                         lat = gpsTracker.getLatitude();
                         lng = gpsTracker.getLongitude();
 //                        countryTextBox.setText(gpsTracker.getCountryName(PreferencesActivity.this));
                         city.setText(gpsTracker.getLocality(PreferencesActivity.this));
-                        Toast.makeText(PreferencesActivity.this, "You have Permission " + lat +" , "+ lng, Toast.LENGTH_LONG).show();
-                    }
-                    else
-                    {
+                        Toast.makeText(PreferencesActivity.this, "You have Permission " + lat + " , " + lng, Toast.LENGTH_LONG).show();
+                    } else {
                         // can't get location
                         // GPS or Network is not enabled
                         // Ask user to enable GPS/network in settings
@@ -111,17 +101,13 @@ public class PreferencesActivity extends AppCompatActivity {
                     }
 
 
-                }
-                else {
+                } else {
                     Toast.makeText(PreferencesActivity.this, "You dont have Permission", Toast.LENGTH_SHORT).show();
                 }
 
 
             }
         });
-
-
-
 
 
     }
@@ -145,15 +131,14 @@ public class PreferencesActivity extends AppCompatActivity {
             final String simCountry = tm.getSimCountryIso();
             if (simCountry != null && simCountry.length() == 2) { // SIM country code is available
                 return simCountry.toLowerCase(Locale.US);
-            }
-            else if (tm.getPhoneType() != TelephonyManager.PHONE_TYPE_CDMA) { // device is not 3G (would be unreliable)
+            } else if (tm.getPhoneType() != TelephonyManager.PHONE_TYPE_CDMA) { // device is not 3G (would be unreliable)
                 String networkCountry = tm.getNetworkCountryIso();
                 if (networkCountry != null && networkCountry.length() == 2) { // network country code is available
                     return networkCountry.toLowerCase(Locale.US);
                 }
             }
+        } catch (Exception e) {
         }
-        catch (Exception e) { }
         return null;
     }
 
@@ -161,7 +146,7 @@ public class PreferencesActivity extends AppCompatActivity {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         List<Address> addresses = geocoder.getFromLocation(MyLat, MyLong, 1);
         String cityName = addresses.get(0).getAddressLine(0);
-       String stateName = addresses.get(0).getAddressLine(1);
+        String stateName = addresses.get(0).getAddressLine(1);
         String countryName = addresses.get(0).getAddressLine(2);
         return cityName;
     }

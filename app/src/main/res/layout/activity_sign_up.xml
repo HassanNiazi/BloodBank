@@ -5,7 +5,7 @@
     android:id="@+id/activity_sign_up"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.hash.bloodbank.SignUp">
+    tools:context="com.example.hash.bloodbank.SignUpActivity">
 
     <EditText
         android:layout_width="0dp"
