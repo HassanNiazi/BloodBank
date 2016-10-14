@@ -8,7 +8,7 @@ import android.net.Uri;
 
 public class User {
     String name;
-    Uri photoURL;
+//    Uri photoURL;
     String bloodGroup;
     String city;
     String country;
@@ -16,15 +16,18 @@ public class User {
     double longitude;
     boolean availableToDonate;
 
-    public User(String name, Uri photoURL, String bloodGroup, String city, String country, double latitude, double longitude, boolean availableToDonate) {
+    public User(String name, String bloodGroup, String city, String country, double latitude, double longitude, boolean availableToDonate) {
         this.name = name;
-        this.photoURL = photoURL;
+//        this.photoURL = photoURL;
         this.bloodGroup = bloodGroup;
         this.city = city;
         this.country = country;
         this.latitude = latitude;
         this.longitude = longitude;
         this.availableToDonate = availableToDonate;
+    }
+
+    public User() {
     }
 
     public String getName() {
@@ -35,13 +38,16 @@ public class User {
         this.name = name;
     }
 
-    public Uri getPhotoURL() {
-        return photoURL;
-    }
+//    public Uri getPhotoURL() {
+//        return photoURL;
+//    }
+//
+//    public void setPhotoURL(Uri photoURL) {
+//        this.photoURL = photoURL;
+//    }
 
-    public void setPhotoURL(Uri photoURL) {
-        this.photoURL = photoURL;
-    }
+
+
 
     public String getBloodGroup() {
         return bloodGroup;

@@ -9,20 +9,19 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.telephony.TelephonyManager;
-import android.util.Log;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,31 +33,58 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
+import com.twitter.sdk.android.core.TwitterAuthConfig;
+import com.twitter.sdk.android.core.TwitterCore;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Locale;
-import java.util.Objects;
+
+import io.fabric.sdk.android.Fabric;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "MainActivity";
+    private static final int OPEN_CAMERA = 120;
+    Uri downloadUrl;
+    User user;
+    RoundedImageView roundedImageView;
+    TextView userNameTextView, phoneNoTextView, userCityTextView;
+    String userName, phoneNo, imagePath, cityName, bloodGroup, callingActivity, country;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
     private StorageReference mStorageRef;
-    Uri downloadUrl;
 
-    RoundedImageView roundedImageView;
-    TextView userNameTextView, phoneNoTextView, userCityTextView;
+    public static String getUserCountry(Context context) {
+        try {
+            final TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            final String simCountry = tm.getSimCountryIso();
+            if (simCountry != null && simCountry.length() == 2) { // SIM country code is available
+                return simCountry.toLowerCase(Locale.US);
+            } else if (tm.getPhoneType() != TelephonyManager.PHONE_TYPE_CDMA) { // device is not 3G (would be unreliable)
+                String networkCountry = tm.getNetworkCountryIso();
+                if (networkCountry != null && networkCountry.length() == 2) { // network country code is available
+                    return networkCountry.toLowerCase(Locale.US);
+                }
+            }
+        } catch (Exception e) {
+        }
+        return null;
+    }
 
-    //Capital Initials Used Intentionally
-    String userName, phoneNo, imagePath, cityName, bloodGroup, callingActivity, country;
+    // TODO Handle Dual Sim Users Scenerio
+
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
@@ -67,14 +93,16 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        phoneNo = Digits.getActiveSession().getPhoneNumber();
-        FirebaseDbCom firebaseDbCom = new FirebaseDbCom();
+        TwitterAuthConfig authConfig = new TwitterAuthConfig(getResources().getString(R.string.TWITTER_KEY), getResources().getString(R.string.TWITTER_SECRET));
+        Digits.Builder digitsBuilder = new Digits.Builder().withTheme(R.style.CustomDigitsTheme);
+        Fabric.with(this, new TwitterCore(authConfig), digitsBuilder.build());
 
-        Snackbar.make(findViewById(R.id.fab), "Hello " + phoneNo, Snackbar.LENGTH_LONG).show();
 
-        //
-        // Start of [Firebase Authentication as Anonymous User]
-        //
+//        Snackbar.make(findViewById(R.id.fab), "Hello " + phoneNo, Snackbar.LENGTH_LONG).show();
+
+//        //
+//        // Start of [Firebase Authentication as Anonymous User]
+//        //
         mAuth = FirebaseAuth.getInstance();
         authStateListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -102,83 +130,103 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
 
-        mStorageRef = FirebaseStorage.getInstance().getReference();
+//
+//        //
+//        // End Of [Firebase Authentication as Anonymous User]
+//        //
+//
+//
+//        //
+//        // Start of [getIntent and conditional Db queries]
+//        //
 
+//        Intent intent = getIntent();
+//        userName = intent.getStringExtra(getResources().getString(R.string.userNameKeyValue));
+//        phoneNo = intent.getStringExtra(getResources().getString(R.string.phoneNo));
+//        imagePath = intent.getStringExtra(getResources().getString(R.string.userImageKey));
+//        cityName = intent.getStringExtra(getResources().getString(R.string.cityNameKey));
+//        bloodGroup = intent.getStringExtra(getResources().getString(R.string.blood_group));
+//        callingActivity = intent.getStringExtra(getResources().getString(R.string.callingActivity));
 
-        //
-        // End Of [Firebase Authentication as Anonymous User]
-        //
+//
+//        Log.d(TAG, "onCreate: Calling Activity is " + callingActivity);
+//        String signUpActivity = getString(R.string.SignUpActivity);
+//        Log.d(TAG, "onCreate: SignUpactivity : " + signUpActivity);
+//        if (Objects.equals(callingActivity, signUpActivity)) {
+//            //New User <> Save To DB
+//
+//
+////            downloadUrl = "NoUrl";
+//            country = getUserCountry(this);
+//            User user = new User(userName, bloodGroup, cityName, country, 0, 0, true);
+//            firebaseDbCom.writeToDBProfiles(user, phoneNo);
+//
+//        } else {
+        phoneNo = Digits.getActiveSession().getPhoneNumber();
+        if (phoneNo != null) {
 
-
-        //
-        // Start of [getIntent and conditional Db queries]
-        //
-
-        Intent intent = getIntent();
-        userName = intent.getStringExtra(getResources().getString(R.string.userNameKeyValue));
-        phoneNo = intent.getStringExtra(getResources().getString(R.string.phoneNo));
-        imagePath = intent.getStringExtra(getResources().getString(R.string.userImageKey));
-        cityName = intent.getStringExtra(getResources().getString(R.string.cityNameKey));
-        bloodGroup = intent.getStringExtra(getResources().getString(R.string.blood_group));
-        callingActivity = intent.getStringExtra(getString(R.string.callingActivity));
-
-
-        Log.d(TAG, "onCreate: Calling Activity is " + callingActivity);
-        String signUpActivity = getString(R.string.SignUpActivity);
-        Log.d(TAG, "onCreate: SignUpactivity : " + signUpActivity);
-        if (Objects.equals(callingActivity, signUpActivity)) {
-            //New User <> Save To DB
-
+            Log.d(TAG, "onCreate: PhoneNo" + phoneNo);
             try {
-                Uri file = Uri.fromFile(new File(imagePath));
-                StorageReference storageReference = mStorageRef.child("images/" + phoneNo + ".storageReference");
 
-                storageReference.putFile(file)
-                        .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                            @Override
-                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                // Get a URL to the uploaded content
-                                downloadUrl = taskSnapshot.getDownloadUrl();
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception exception) {
-                                // Handle unsuccessful uploads
-                                // ...
-                            }
-                        });
+                DatabaseReference database = FirebaseDatabase.getInstance().getReference();
+                DatabaseReference myRef = database.child("profiles");
+
+                myRef.child(phoneNo).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        user = dataSnapshot.getValue(User.class);
+                        userName = user.getName();
+                        cityName = user.getCity();
+                        bloodGroup = user.getBloodGroup();
+                        country = user.getCountry();
+
+
+                        userNameTextView.setText(user.getName());
+                        phoneNoTextView.setText(phoneNo);
+                        userCityTextView.setText(user.getCity());
+
+                        try {
+                            final File localFile = File.createTempFile(phoneNo, ".png");
+                            StorageReference storageReference = FirebaseStorage.getInstance().getReference();
+                            StorageReference fileRef = storageReference.child("images/" + phoneNo + ".png");
+                            fileRef.getFile(localFile)
+                                    .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                                        @Override
+                                        public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                                            // Successfully downloaded data to local file
+                                            BitmapFactory.Options o = new BitmapFactory.Options();
+                                            o.inSampleSize = 1;
+                                            Bitmap b = BitmapFactory.decodeFile(localFile.getPath(), o);
+                                            roundedImageView.setImageBitmap(b);
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception exception) {
+                                    // Handle failed download
+                                    // ...
+                                }
+                            });
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+
+                });
+
+
             } catch (Exception ex) {
-                Toast.makeText(this, "Online Storage Access Failed", Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "onCreate: " + ex.getMessage());
             }
-
-            User user = new User(userName, downloadUrl, bloodGroup, cityName, country, 0, 0, true);
-            firebaseDbCom.writeToDBProfiles(user, phoneNo);
-
         } else {
-            phoneNo = Digits.getActiveSession().getPhoneNumber();
-            if (phoneNo != null) {
-
-                Log.d(TAG, "onCreate: PhoneNo" + phoneNo);
-                User user = firebaseDbCom.readFromDBUserProfile(phoneNo);
-
-                userName = user.getName();
-                //imagePath =
-                cityName = user.getCity();
-                bloodGroup = user.getBloodGroup();
-                country = user.getCountry();
-
-
-                userNameTextView.setText(user.getName());
-                phoneNoTextView.setText(phoneNo);
-                userCityTextView.setText(user.getCity());
-
-            } else {
-                Toast.makeText(this, "Unable to resolve User", Toast.LENGTH_SHORT).show();
-            }
+            Toast.makeText(this, "Unable to resolve User", Toast.LENGTH_SHORT).show();
         }
-
-
+//        }
         //
         // End of [getIntent and conditional Db queries]
         //
@@ -192,9 +240,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FirebaseDatabase database = FirebaseDatabase.getInstance();
-                DatabaseReference myRef = database.getReference("message");
-                myRef.setValue("Hello, World!");
+
             }
         });
 
@@ -213,19 +259,15 @@ public class MainActivity extends AppCompatActivity
         phoneNoTextView = (TextView) v.findViewById(R.id.phoneNumberNavMenu);
         userCityTextView = (TextView) v.findViewById(R.id.cityNavMenu);
 
-        try {
-            Bitmap bitmap = getThumbnail(imagePath);
-            roundedImageView.setImageBitmap(bitmap);
-        } catch (Exception e) {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-
-
-        userNameTextView.setText(userName);
-        phoneNoTextView.setText(phoneNo);
-        userCityTextView.setText(cityName);
-
-        Toast.makeText(this, "Someone with blood group " + bloodGroup + " Signed In", Toast.LENGTH_SHORT).show();
+//        try {
+//            Bitmap bitmap = getThumbnail(imagePath);
+//            roundedImageView.setImageBitmap(bitmap);
+//        } catch (Exception e) {
+//            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+//        }
+//        userNameTextView.setText(userName);
+//        phoneNoTextView.setText(phoneNo);
+//        userCityTextView.setText(cityName);
 
         //
         // End of [Some UI Stuff]
@@ -237,13 +279,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        mAuth.addAuthStateListener(authStateListener);
+//        mAuth.addAuthStateListener(authStateListener);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        mAuth.removeAuthStateListener(authStateListener);
+//        mAuth.removeAuthStateListener(authStateListener);
     }
 
     @Override
@@ -285,8 +327,11 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_chat) {
-            // Handle the camera action
+
         } else if (id == R.id.nav_map) {
+
+            Intent intent = new Intent(this, MapsActivity.class);
+            startActivity(intent);
 
         } else if (id == R.id.nav_personlization) {
 
@@ -297,6 +342,40 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    private File readUserImageFromFirebaseDatabase(String userPhoneNo) throws IOException {
+        File localFile = File.createTempFile(userPhoneNo, ".png");
+        StorageReference storageReference = FirebaseStorage.getInstance().getReference();
+        StorageReference fileRef = storageReference.child("images/" + userPhoneNo + ".png");
+        fileRef.getFile(localFile)
+                .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                        // Successfully downloaded data to local file
+                        // ...
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                // Handle failed download
+                // ...
+            }
+        });
+        return localFile;
+    }
+
+    public String saveImageToInternalStorage(Bitmap image, String filename) {
+
+        try {
+            FileOutputStream fos = this.openFileOutput(filename + ".png", Context.MODE_PRIVATE);
+            image.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            fos.close();
+        } catch (Exception e) {
+            Log.e("saveToInternalStorage()", e.getMessage());
+        }
+        return filename + ".png";
+
+    }
+
     public Bitmap getThumbnail(String filename) {
 
         Bitmap thumbnail = null;
@@ -305,56 +384,62 @@ public class MainActivity extends AppCompatActivity
             FileInputStream fi = new FileInputStream(filePath);
             thumbnail = BitmapFactory.decodeStream(fi);
         } catch (Exception ex) {
+
         }
 
         return thumbnail;
     }
 
-    public static String getUserCountry(Context context) {
-        try {
-            final TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            final String simCountry = tm.getSimCountryIso();
-            if (simCountry != null && simCountry.length() == 2) { // SIM country code is available
-                return simCountry.toLowerCase(Locale.US);
-            } else if (tm.getPhoneType() != TelephonyManager.PHONE_TYPE_CDMA) { // device is not 3G (would be unreliable)
-                String networkCountry = tm.getNetworkCountryIso();
-                if (networkCountry != null && networkCountry.length() == 2) { // network country code is available
-                    return networkCountry.toLowerCase(Locale.US);
-                }
-            }
-        } catch (Exception e) {
-        }
-        return null;
-    }
+//    private void saveToFirebaseStorage(Bitmap bitmap) {
+//        try {
+//            mStorageRef = FirebaseStorage.getInstance().getReference();
+//
+////                Uri file = Uri.fromFile(new File(imagePath));
+////            Bitmap bitmap = getThumbnail(_imagePath);
+//            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+//            byte[] data = baos.toByteArray();
+//            StorageReference storageReference = mStorageRef.child("images/" + phoneNo + ".jpg");
+//            UploadTask uploadTask = storageReference.putBytes(data);
+//            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+//                @Override
+//                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+//                    // Get a URL to the uploaded content
+//                    downloadUrl = taskSnapshot.getDownloadUrl();
+//                }
+//            })
+//                    .addOnFailureListener(new OnFailureListener() {
+//                        @Override
+//                        public void onFailure(@NonNull Exception exception) {
+//                            // Handle unsuccessful uploads
+//                            // ...
+//                        }
+//                    });
+//        } catch (Exception ex) {
+//            Toast.makeText(this, "Online Storage Access Failed", Toast.LENGTH_SHORT).show();
+//        }
+//    }
 
-    private Uri saveToFirebaseStorage(Uri file) {
-        //
-        // Start of [Firebase Storage]
-        //
+//    public void takePhoto() {
+//
+//        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+//        startActivityForResult(cameraIntent, OPEN_CAMERA);
+//
+//    }
 
-        mStorageRef = FirebaseStorage.getInstance().getReference();
-//        Uri file = Uri.fromFile(new File("path/to/images/rivers.jpg"));
-        StorageReference riversRef = mStorageRef.child("images/rivers.jpg");
-        final Uri[] downloadUrl = new Uri[1];
-        riversRef.putFile(file)
-                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        // Get a URL to the uploaded content
-                        downloadUrl[0] = taskSnapshot.getDownloadUrl();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception exception) {
-                        Toast.makeText(MainActivity.this, "Failed to connect to server. Enable Data Connectivity", Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-        return downloadUrl[0];
-        //
-        // End of [Firebase Storage]
-        //
-
-    }
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//
+//        if (requestCode == OPEN_CAMERA) {
+//
+//            Bitmap photo = (Bitmap) data.getExtras().get("data");
+//            saveToFirebaseStorage(photo);
+////                bitmapUserImage = photo;
+////                imageView.setImageBitmap(photo);
+//
+//
+//        }
+//    }
 }
+

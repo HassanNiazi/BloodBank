@@ -26,22 +26,13 @@ import io.fabric.sdk.android.Fabric;
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
 
-    // Note: Your consumer key and secret should be obfuscated in your source code before shipping.
-    private static final String TWITTER_KEY = "Fto25uhjdYYi7hvrLHiZTq7xa";
-    private static final String TWITTER_SECRET = "Fa7xPIip9FxSNzowmyRcBCtXh7EXh8GCGSWYHmUvBZdCDpENek";
-    private static final int MY_PERMISSIONS_REQUEST_SMS = 200;
-
-    // UI Controls
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        TwitterAuthConfig authConfig = new TwitterAuthConfig(TWITTER_KEY, TWITTER_SECRET);
+        TwitterAuthConfig authConfig = new TwitterAuthConfig(getResources().getString(R.string.TWITTER_KEY), getResources().getString(R.string.TWITTER_SECRET));
         Digits.Builder digitsBuilder = new Digits.Builder().withTheme(R.style.CustomDigitsTheme);
         Fabric.with(this, new TwitterCore(authConfig), digitsBuilder.build());
-
 
         if (Digits.getActiveSession() != null) {
             Log.d("Digits", "onCreate: Digits.getActiveSession().getPhoneNumber()  = " + Digits.getActiveSession().getPhoneNumber());
@@ -49,7 +40,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             intent.putExtra(getString(R.string.phoneNo),Digits.getActiveSession().getPhoneNumber());
             intent.putExtra(getString(R.string.callingActivity),R.string.LoginActivity);
             startActivity(intent);
-//        Direct To MainAcrivity
+//        Direct To MainActivity
 
         } else {
 
@@ -64,7 +55,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 intent.putExtra(getResources().getString(R.string.phoneNo), phoneNumber);
                 startActivity(intent);
             }
-
             @Override
             public void failure(DigitsException exception) {
                 Log.d("Digits", "Sign in with Digits failure", exception);
