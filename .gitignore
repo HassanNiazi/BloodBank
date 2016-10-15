@@ -7,6 +7,6 @@
 /build
 /captures
 .externalNativeBuild
-/app/src/main/res/values/secret_keys.xml
+app/src/main/res/values/secret_keys.xml
 app/fabric.properties
 app/libs/
