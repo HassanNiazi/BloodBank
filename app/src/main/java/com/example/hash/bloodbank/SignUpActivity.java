@@ -151,19 +151,6 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
-    public String saveImageToInternalStorage(Bitmap image, String filename) {
-
-        try {
-            FileOutputStream fos = this.openFileOutput(filename + ".png", Context.MODE_PRIVATE);
-            image.compress(Bitmap.CompressFormat.PNG, 100, fos);
-            fos.close();
-        } catch (Exception e) {
-            Log.e("saveToInternalStorage()", e.getMessage());
-        }
-        return filename + ".png";
-
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
         switch (requestCode) {
@@ -354,7 +341,7 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     // Get a URL to the uploaded content
-                    downloadUrl = taskSnapshot.getDownloadUrl();
+//                    downloadUrl = taskSnapshot.getDownloadUrl();
                 }
             })
                     .addOnFailureListener(new OnFailureListener() {

@@ -1,19 +1,29 @@
 package com.example.hash.bloodbank;
 
+import android.*;
+import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
@@ -41,9 +51,11 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 import com.twitter.sdk.android.core.TwitterCore;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -56,12 +68,15 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "MainActivity";
+    private static final int SELECT_PICTURE = 100;
     private static final int OPEN_CAMERA = 120;
+    private static final int MY_PERMISSIONS_REQUEST_CAMERA = 140;
+    String[] imageSource = {"Gallery", "Camera"};
     Uri downloadUrl;
     User user;
     RoundedImageView roundedImageView;
     TextView userNameTextView, phoneNoTextView, userCityTextView;
-    String userName, phoneNo, imagePath, cityName, bloodGroup, callingActivity, country;
+    String userName, phoneNo, cityName, bloodGroup, country;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
     private StorageReference mStorageRef;
@@ -83,8 +98,10 @@ public class MainActivity extends AppCompatActivity
         return null;
     }
 
-    // TODO Handle Dual Sim Users Scenerio
-
+    // TODO Handle Dual Sim Users Scenario
+    // TODO Handle Failures across application
+    // TODO Add Cities for users country
+    // TODO Add a circular animation on image uploads then handle upload result in onSuccess and onFailure to update gui accordingly
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
@@ -204,6 +221,10 @@ public class MainActivity extends AppCompatActivity
                                 public void onFailure(@NonNull Exception exception) {
                                     // Handle failed download
                                     // ...
+
+                                    // Place a no user image file in the Rounded Image view
+                                    Bitmap bitmapUnavailable = BitmapFactory.decodeResource(getResources(), R.drawable.avatar);
+                                    roundedImageView.setImageBitmap(bitmapUnavailable);
                                 }
                             });
                         } catch (IOException e) {
@@ -226,15 +247,7 @@ public class MainActivity extends AppCompatActivity
         } else {
             Toast.makeText(this, "Unable to resolve User", Toast.LENGTH_SHORT).show();
         }
-//        }
-        //
-        // End of [getIntent and conditional Db queries]
-        //
 
-
-        //
-        // Start of [Some UI Stuff]
-        //
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -259,20 +272,159 @@ public class MainActivity extends AppCompatActivity
         phoneNoTextView = (TextView) v.findViewById(R.id.phoneNumberNavMenu);
         userCityTextView = (TextView) v.findViewById(R.id.cityNavMenu);
 
-//        try {
-//            Bitmap bitmap = getThumbnail(imagePath);
-//            roundedImageView.setImageBitmap(bitmap);
-//        } catch (Exception e) {
-//            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-//        }
-//        userNameTextView.setText(userName);
-//        phoneNoTextView.setText(phoneNo);
-//        userCityTextView.setText(cityName);
+        roundedImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getImageFromStorageOrCamera();
+                // Response is handled on activity result
+            }
+        });
 
-        //
-        // End of [Some UI Stuff]
-        //
+    }
 
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK) {
+            if (requestCode == SELECT_PICTURE) {
+                // Get the url from data
+                Uri selectedImageUri = data.getData();
+                if (null != selectedImageUri) {
+                    // Get the path from the Uri
+                    String path = getPathFromURI(selectedImageUri);
+                    Log.i("ImageLoaded", "Image Path : " + path);
+                    // Set the image in ImageView
+                    roundedImageView.setImageURI(selectedImageUri);
+                    Bitmap bitmapUserImage;
+                    bitmapUserImage = ((BitmapDrawable) roundedImageView.getDrawable()).getBitmap();
+                    saveToFirebaseStorage(bitmapUserImage,phoneNo);
+                }
+            } else if (requestCode == OPEN_CAMERA) {
+
+                Bitmap photo = (Bitmap) data.getExtras().get("data");
+                roundedImageView.setImageBitmap(photo);
+                saveToFirebaseStorage(photo,phoneNo);
+            }
+        }
+    }
+
+    public String getPathFromURI(Uri contentUri) {
+        String res = null;
+        String[] proj = {MediaStore.Images.Media.DATA};
+        Cursor cursor = getContentResolver().query(contentUri, proj, null, null, null);
+        if (cursor.moveToFirst()) {
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            res = cursor.getString(column_index);
+        }
+        cursor.close();
+        return res;
+    }
+
+    private void getImageFromStorageOrCamera() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Choose Image Source")
+                .setItems(imageSource, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        switch (which) {
+                            case 0:
+                                openImageChooser();
+                                break;
+                            case 1:
+
+
+                                if (ContextCompat.checkSelfPermission(MainActivity.this,
+                                        android.Manifest.permission.CAMERA)
+                                        != PackageManager.PERMISSION_GRANTED) {
+
+                                    // Should we show an explanation?
+                                    if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                                            android.Manifest.permission.CAMERA)) {
+
+
+                                        // Show an expanation to the user *asynchronously* -- don't block
+                                        // this thread waiting for the user's response! After the user
+                                        // sees the explanation, try again to request the permission.
+
+                                    } else {
+
+                                        // No explanation needed, we can request the permission.
+
+                                        ActivityCompat.requestPermissions(MainActivity.this,
+                                                new String[]{android.Manifest.permission.CAMERA},
+                                                MY_PERMISSIONS_REQUEST_CAMERA);
+
+                                        // MY_PERMI Bitmap bitmap = getThumbnail(filename);SSIONS_REQUEST_READ_CONTACTS is an
+                                        // app-defined int constant. The callback method gets the
+                                        // result of the request.
+                                    }
+                                }
+
+                                if (ContextCompat.checkSelfPermission(MainActivity.this,
+                                        Manifest.permission.CAMERA)
+                                        == PackageManager.PERMISSION_GRANTED) {
+                                    takePhoto();
+                                } else {
+                                    Toast.makeText(MainActivity.this, "You dont have Permission to take Pictures", Toast.LENGTH_SHORT).show();
+                                }
+
+
+                                break;
+                        }
+
+                    }
+                });
+        builder.show();
+    }
+
+    private Uri saveToFirebaseStorage(Bitmap bitmap,String phoneNo) {
+        try {
+            mStorageRef = FirebaseStorage.getInstance().getReference();
+//                Uri file = Uri.fromFile(new File(imagePath));
+//            Bitmap bitmap = getThumbnail(_imagePath);
+//            final Uri downloadUrl;
+            byte[] imageAsBytes=null;
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap = Bitmap.createScaledBitmap(bitmap, 120, 120, false);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+            byte[] data = baos.toByteArray();
+
+            StorageReference storageReference = mStorageRef.child("images/" + phoneNo + ".png");
+            UploadTask uploadTask = storageReference.putBytes(data);
+            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    // Get a URL to the uploaded content
+//                    downloadUrl = taskSnapshot.getDownloadUrl();
+                }
+            })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception exception) {
+
+                        }
+                    });
+            return  downloadUrl;
+
+        } catch (Exception ex) {
+            Toast.makeText(this, "Online Storage Access Failed", Toast.LENGTH_SHORT).show();
+            return  null;
+        }
+    }
+
+
+    void openImageChooser() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PICTURE);
+    }
+
+    public void takePhoto() {
+
+        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(cameraIntent, OPEN_CAMERA);
 
     }
 
@@ -341,105 +493,5 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
-    private File readUserImageFromFirebaseDatabase(String userPhoneNo) throws IOException {
-        File localFile = File.createTempFile(userPhoneNo, ".png");
-        StorageReference storageReference = FirebaseStorage.getInstance().getReference();
-        StorageReference fileRef = storageReference.child("images/" + userPhoneNo + ".png");
-        fileRef.getFile(localFile)
-                .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                        // Successfully downloaded data to local file
-                        // ...
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception exception) {
-                // Handle failed download
-                // ...
-            }
-        });
-        return localFile;
-    }
-
-    public String saveImageToInternalStorage(Bitmap image, String filename) {
-
-        try {
-            FileOutputStream fos = this.openFileOutput(filename + ".png", Context.MODE_PRIVATE);
-            image.compress(Bitmap.CompressFormat.PNG, 100, fos);
-            fos.close();
-        } catch (Exception e) {
-            Log.e("saveToInternalStorage()", e.getMessage());
-        }
-        return filename + ".png";
-
-    }
-
-    public Bitmap getThumbnail(String filename) {
-
-        Bitmap thumbnail = null;
-        try {
-            File filePath = this.getFileStreamPath(filename);
-            FileInputStream fi = new FileInputStream(filePath);
-            thumbnail = BitmapFactory.decodeStream(fi);
-        } catch (Exception ex) {
-
-        }
-
-        return thumbnail;
-    }
-
-//    private void saveToFirebaseStorage(Bitmap bitmap) {
-//        try {
-//            mStorageRef = FirebaseStorage.getInstance().getReference();
-//
-////                Uri file = Uri.fromFile(new File(imagePath));
-////            Bitmap bitmap = getThumbnail(_imagePath);
-//            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-//            byte[] data = baos.toByteArray();
-//            StorageReference storageReference = mStorageRef.child("images/" + phoneNo + ".jpg");
-//            UploadTask uploadTask = storageReference.putBytes(data);
-//            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-//                @Override
-//                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                    // Get a URL to the uploaded content
-//                    downloadUrl = taskSnapshot.getDownloadUrl();
-//                }
-//            })
-//                    .addOnFailureListener(new OnFailureListener() {
-//                        @Override
-//                        public void onFailure(@NonNull Exception exception) {
-//                            // Handle unsuccessful uploads
-//                            // ...
-//                        }
-//                    });
-//        } catch (Exception ex) {
-//            Toast.makeText(this, "Online Storage Access Failed", Toast.LENGTH_SHORT).show();
-//        }
-//    }
-
-//    public void takePhoto() {
-//
-//        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-//        startActivityForResult(cameraIntent, OPEN_CAMERA);
-//
-//    }
-
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//
-//        if (requestCode == OPEN_CAMERA) {
-//
-//            Bitmap photo = (Bitmap) data.getExtras().get("data");
-//            saveToFirebaseStorage(photo);
-////                bitmapUserImage = photo;
-////                imageView.setImageBitmap(photo);
-//
-//
-//        }
-//    }
 }
 
