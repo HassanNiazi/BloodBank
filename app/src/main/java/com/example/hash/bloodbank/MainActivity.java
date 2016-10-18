@@ -1,6 +1,5 @@
 package com.example.hash.bloodbank;
 
-import android.*;
 import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -10,6 +9,9 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,12 +28,10 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,10 +57,7 @@ import com.twitter.sdk.android.core.TwitterCore;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Locale;
 
 import io.fabric.sdk.android.Fabric;
 
@@ -71,32 +68,18 @@ public class MainActivity extends AppCompatActivity
     private static final int SELECT_PICTURE = 100;
     private static final int OPEN_CAMERA = 120;
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 140;
+    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 160;
     String[] imageSource = {"Gallery", "Camera"};
     Uri downloadUrl;
     User user;
     RoundedImageView roundedImageView;
     TextView userNameTextView, phoneNoTextView, userCityTextView;
     String userName, phoneNo, cityName, bloodGroup, country;
+    Double latitude, longitude;
+
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
     private StorageReference mStorageRef;
-
-    public static String getUserCountry(Context context) {
-        try {
-            final TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            final String simCountry = tm.getSimCountryIso();
-            if (simCountry != null && simCountry.length() == 2) { // SIM country code is available
-                return simCountry.toLowerCase(Locale.US);
-            } else if (tm.getPhoneType() != TelephonyManager.PHONE_TYPE_CDMA) { // device is not 3G (would be unreliable)
-                String networkCountry = tm.getNetworkCountryIso();
-                if (networkCountry != null && networkCountry.length() == 2) { // network country code is available
-                    return networkCountry.toLowerCase(Locale.US);
-                }
-            }
-        } catch (Exception e) {
-        }
-        return null;
-    }
 
     // TODO Handle Dual Sim Users Scenario
     // TODO Handle Failures across application
@@ -108,6 +91,10 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        latitude = 0.0;
+        longitude = 0.0;
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         TwitterAuthConfig authConfig = new TwitterAuthConfig(getResources().getString(R.string.TWITTER_KEY), getResources().getString(R.string.TWITTER_SECRET));
@@ -196,11 +183,13 @@ public class MainActivity extends AppCompatActivity
                         cityName = user.getCity();
                         bloodGroup = user.getBloodGroup();
                         country = user.getCountry();
-
-
+                        latitude = user.getLatitude();
+                        longitude = user.getLongitude();
                         userNameTextView.setText(user.getName());
                         phoneNoTextView.setText(phoneNo);
                         userCityTextView.setText(user.getCity());
+
+                        // Storage
 
                         try {
                             final File localFile = File.createTempFile(phoneNo, ".png");
@@ -231,6 +220,72 @@ public class MainActivity extends AppCompatActivity
                             e.printStackTrace();
                         }
 
+                        // lat Long Check
+
+                        if (latitude == 0.0 && longitude == 0.0) {
+                            Toast.makeText(MainActivity.this, "Location not registered", Toast.LENGTH_SHORT).show();
+
+                            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+                            LocationListener mLocationListener = new LocationListener() {
+                                @Override
+                                public void onLocationChanged(final Location location) {
+                                    //your code here
+
+                                    latitude = location.getLatitude();
+                                    longitude = location.getLongitude();
+
+                                    if (latitude != 0.0 && longitude != 0.0) {
+                                        FirebaseDbCom firebaseDbCom = new FirebaseDbCom();
+                                        UserCoordinateClass userCoordinateClass = new UserCoordinateClass(latitude,longitude,phoneNo,userName);
+                                        firebaseDbCom.writeToDBUserCoords(userCoordinateClass);
+                                    }
+                                    else
+                                    {
+                                        Toast.makeText(MainActivity.this, "Unable to get user data", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+
+                                @Override
+                                public void onStatusChanged(String provider, int status, Bundle extras) {
+
+                                }
+
+                                @Override
+                                public void onProviderEnabled(String provider) {
+
+                                }
+
+                                @Override
+                                public void onProviderDisabled(String provider) {
+
+                                }
+                            };
+
+                            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                                    != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainActivity.this,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                // TODO: Consider calling
+                                //    ActivityCompat#requestPermissions
+                                // here to request the missing permissions, and then overriding
+                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                //                                          int[] grantResults)
+                                // to handle the case where the user grants the permission. See the documentation
+                                // for ActivityCompat#requestPermissions for more details.
+
+                                ActivityCompat.requestPermissions(MainActivity.this,
+                                        new String[]{Manifest.permission.READ_CONTACTS},
+                                        MY_PERMISSIONS_REQUEST_LOCATION);
+
+                                return;
+                            }
+                            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
+
+
+
+                        } else {
+
+                        }
                     }
 
                     @Override
@@ -253,6 +308,8 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                Toast.makeText(MainActivity.this, "Work in Progress", Toast.LENGTH_SHORT).show();
 
             }
         });
@@ -297,13 +354,13 @@ public class MainActivity extends AppCompatActivity
                     roundedImageView.setImageURI(selectedImageUri);
                     Bitmap bitmapUserImage;
                     bitmapUserImage = ((BitmapDrawable) roundedImageView.getDrawable()).getBitmap();
-                    saveToFirebaseStorage(bitmapUserImage,phoneNo);
+                    saveToFirebaseStorage(bitmapUserImage, phoneNo);
                 }
             } else if (requestCode == OPEN_CAMERA) {
 
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
                 roundedImageView.setImageBitmap(photo);
-                saveToFirebaseStorage(photo,phoneNo);
+                saveToFirebaseStorage(photo, phoneNo);
             }
         }
     }
@@ -378,13 +435,13 @@ public class MainActivity extends AppCompatActivity
         builder.show();
     }
 
-    private Uri saveToFirebaseStorage(Bitmap bitmap,String phoneNo) {
+    private Uri saveToFirebaseStorage(Bitmap bitmap, String phoneNo) {
         try {
             mStorageRef = FirebaseStorage.getInstance().getReference();
 //                Uri file = Uri.fromFile(new File(imagePath));
 //            Bitmap bitmap = getThumbnail(_imagePath);
 //            final Uri downloadUrl;
-            byte[] imageAsBytes=null;
+            byte[] imageAsBytes = null;
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             bitmap = Bitmap.createScaledBitmap(bitmap, 120, 120, false);
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
@@ -405,11 +462,11 @@ public class MainActivity extends AppCompatActivity
 
                         }
                     });
-            return  downloadUrl;
+            return downloadUrl;
 
         } catch (Exception ex) {
             Toast.makeText(this, "Online Storage Access Failed", Toast.LENGTH_SHORT).show();
-            return  null;
+            return null;
         }
     }
 
@@ -492,6 +549,31 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+                    Toast.makeText(this, "Location Access Failed", Toast.LENGTH_SHORT).show();
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
     }
 }
 

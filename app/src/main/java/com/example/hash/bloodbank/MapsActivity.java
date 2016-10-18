@@ -22,6 +22,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        // TODO Make a call to fetch all users for the current city
     }
 
 
@@ -39,8 +41,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(34, 73);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        LatLng islamabad = new LatLng(33.6847011,73.0156131);
+        mMap.addMarker(new MarkerOptions().position(islamabad).title("Marker in Islamabad"));
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(islamabad,16.0f));
     }
 }
