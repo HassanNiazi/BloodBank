@@ -11,4 +11,3 @@ app/src/main/res/values/secret_keys.xml
 app/fabric.properties
 app/libs/
 /app/src/debug/res/values/google_maps_api.xml
-app/build/
