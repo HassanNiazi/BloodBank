@@ -43,7 +43,7 @@
 
         <meta-data
             android:name="io.fabric.ApiKey"
-            android:value="5fe7293709d590fa4f2e5ccbf7ec7e29a9d94a82" />
+            android:value="@string/fabricKey" />
 
         <activity
             android:name=".SignUpActivity"

@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -38,14 +37,12 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.util.Locale;
 
 
 public class SignUpActivity extends AppCompatActivity implements View.OnClickListener {
     private static final int SELECT_PICTURE = 100;
     private static final String TAG = "SignUpActivity";
-
     private static final int OPEN_CAMERA = 120;
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 140;
     RoundedImageView imageView;
@@ -60,6 +57,23 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
     private FirebaseAuth.AuthStateListener authStateListener;
     private StorageReference mStorageRef;
 
+    public static String getUserCountry(Context context) {
+        try {
+            final TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            final String simCountry = tm.getSimCountryIso();
+            if (simCountry != null && simCountry.length() == 2) { // SIM country code is available
+                return simCountry.toLowerCase(Locale.US);
+            } else if (tm.getPhoneType() != TelephonyManager.PHONE_TYPE_CDMA) { // device is not 3G (would be unreliable)
+                String networkCountry = tm.getNetworkCountryIso();
+                if (networkCountry != null && networkCountry.length() == 2) { // network country code is available
+                    return networkCountry.toLowerCase(Locale.US);
+                }
+            }
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,14 +83,13 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
         Intent intent = getIntent();
         phoneNumber = intent.getStringExtra(getResources().getString(R.string.phoneNo));
         done = (Button) findViewById(R.id.done_sign_up);
-        ((TextView) findViewById(R.id.bloodGroupSignUpEditText)).setOnClickListener(this);
+        findViewById(R.id.bloodGroupSignUpEditText).setOnClickListener(this);
         done.setOnClickListener(this);
         imageView.setOnClickListener(this);
         bitmapUserImage = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
         signInAnonymouslyToFirebase();
 
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -152,27 +165,19 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_CAMERA: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
                     takePhoto();
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-
                 } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
+                    Toast.makeText(this, "Camera Request Denied. No Images for you *****", Toast.LENGTH_SHORT).show();
                 }
                 return;
             }
 
-            // other 'case' lines to check for other
-            // permissions this app might request
         }
     }
 
@@ -238,44 +243,19 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
 
         if (userName.getText().toString().trim().equals("")) {
             userName.setError("Name is required!");
-        }
-        else if (((EditText) findViewById(R.id.citySignUpEditText)).getText().toString().trim().equals("")){
+        } else if (((EditText) findViewById(R.id.citySignUpEditText)).getText().toString().trim().equals("")) {
             ((EditText) findViewById(R.id.citySignUpEditText)).setError("City Name Required");
-        }
-        else {
+        } else {
             Toast.makeText(this, "Signing Up", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(this, MainActivity.class);
-//            intent.putExtra(getResources().getString(R.string.userNameKeyValue), userName.getText().toString());
-//            intent.putExtra(getResources().getString(R.string.phoneNo), phoneNumber);
-//            intent.putExtra(getResources().getString(R.string.userImageKey), saveImageToInternalStorage(bitmapUserImage, getResources().getString(R.string.userImageKey)));
-//            intent.putExtra(getResources().getString(R.string.cityNameKey), ((EditText) findViewById(R.id.citySignUpEditText)).getText().toString());
-//            intent.putExtra(getResources().getString(R.string.blood_group), ((TextView) findViewById(R.id.bloodGroupSignUpEditText)).getText().toString());
-//            intent.putExtra(getString(R.string.callingActivity), getString(R.string.SignUpActivity));
             FirebaseDbCom firebaseDbCom = new FirebaseDbCom();
-            User user = new User(userName.getText().toString(),((TextView) findViewById(R.id.bloodGroupSignUpEditText)).getText().toString()
-                    ,((EditText) findViewById(R.id.citySignUpEditText)).getText().toString(), getUserCountry(this),0,0,true);
-            firebaseDbCom.writeToDBProfiles(user,phoneNumber);
+            User user = new User(userName.getText().toString(), ((TextView) findViewById(R.id.bloodGroupSignUpEditText)).getText().toString()
+                    , ((EditText) findViewById(R.id.citySignUpEditText)).getText().toString(), getUserCountry(this), 0, 0, true);
+            firebaseDbCom.writeToDBProfiles(user, phoneNumber);
             bitmapUserImage = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
-            saveToFirebaseStorage(bitmapUserImage,phoneNumber);
+            saveToFirebaseStorage(bitmapUserImage, phoneNumber);
             startActivity(intent);
         }
-    }
-
-    public static String getUserCountry(Context context) {
-        try {
-            final TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            final String simCountry = tm.getSimCountryIso();
-            if (simCountry != null && simCountry.length() == 2) { // SIM country code is available
-                return simCountry.toLowerCase(Locale.US);
-            } else if (tm.getPhoneType() != TelephonyManager.PHONE_TYPE_CDMA) { // device is not 3G (would be unreliable)
-                String networkCountry = tm.getNetworkCountryIso();
-                if (networkCountry != null && networkCountry.length() == 2) { // network country code is available
-                    return networkCountry.toLowerCase(Locale.US);
-                }
-            }
-        } catch (Exception e) {
-        }
-        return null;
     }
 
     private void selectBloodGroup() {
@@ -323,13 +303,13 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
                 });
     }
 
-    private Uri saveToFirebaseStorage(Bitmap bitmap,String phoneNo) {
+    private Uri saveToFirebaseStorage(Bitmap bitmap, String phoneNo) {
         try {
             mStorageRef = FirebaseStorage.getInstance().getReference();
 //                Uri file = Uri.fromFile(new File(imagePath));
 //            Bitmap bitmap = getThumbnail(_imagePath);
 //            final Uri downloadUrl;
-            byte[] imageAsBytes=null;
+            byte[] imageAsBytes = null;
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             bitmap = Bitmap.createScaledBitmap(bitmap, 120, 120, false);
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
@@ -350,11 +330,11 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
 
                         }
                     });
-            return  downloadUrl;
+            return downloadUrl;
 
         } catch (Exception ex) {
             Toast.makeText(this, "Online Storage Access Failed", Toast.LENGTH_SHORT).show();
-            return  null;
+            return null;
         }
     }
 }
