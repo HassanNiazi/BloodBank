@@ -36,6 +36,7 @@
             android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
             </intent-filter>
         </activity>
         // For some unknown reasons the string value cant be assigned for the Fabric key
