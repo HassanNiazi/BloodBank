@@ -230,6 +230,8 @@ public class MainActivity extends AppCompatActivity
                             LocationListener mLocationListener = new LocationListener() {
                                 @Override
                                 public void onLocationChanged(final Location location) {
+
+
                                     //your code here
 
                                     latitude = location.getLatitude();
@@ -274,14 +276,18 @@ public class MainActivity extends AppCompatActivity
                                 // for ActivityCompat#requestPermissions for more details.
 
                                 ActivityCompat.requestPermissions(MainActivity.this,
-                                        new String[]{Manifest.permission.READ_CONTACTS},
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                                         MY_PERMISSIONS_REQUEST_LOCATION);
 
-                                return;
+
+
+                                //  return;
                             }
-                            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
-
-
+                            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                                    != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainActivity.this,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
+                            }
 
                         } else {
 
