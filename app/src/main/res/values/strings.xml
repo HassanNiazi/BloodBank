@@ -113,4 +113,5 @@
     <string name="LoginActivity">LoginActivity</string>
     <string name="SignUpActivity">SignUpActivity</string>
     <string name="title_activity_user_location_registeration">Map</string>
+    <string name="OK">OK</string>
 </resources>
