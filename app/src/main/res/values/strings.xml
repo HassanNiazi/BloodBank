@@ -114,4 +114,6 @@
     <string name="SignUpActivity">SignUpActivity</string>
     <string name="title_activity_user_location_registeration">Map</string>
     <string name="OK">OK</string>
+    <string name="latitude">latitude</string>
+    <string name="longitude">longitude</string>
 </resources>

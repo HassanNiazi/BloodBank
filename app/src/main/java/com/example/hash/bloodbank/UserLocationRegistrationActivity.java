@@ -16,6 +16,8 @@ import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.widget.Toast;
 
+import com.digits.sdk.android.Digits;
+import com.google.android.gms.auth.api.signin.SignInAccount;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -33,6 +35,8 @@ public class UserLocationRegistrationActivity extends FragmentActivity implement
     double latitude;
     double longitude;
     private GoogleMap mMap;
+    String phoneNumber;
+    String cityName = "-_-";
 
 // TODO Add a waiting circular notation while the device is getting data from the gps
 
@@ -44,7 +48,8 @@ public class UserLocationRegistrationActivity extends FragmentActivity implement
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.userRegistrationMap);
         mapFragment.getMapAsync(this);
-
+        Intent intent = getIntent();
+        phoneNumber = intent.getStringExtra(getResources().getString(R.string.phoneNo));
         findViewById(R.id.autoDetectButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -56,6 +61,14 @@ public class UserLocationRegistrationActivity extends FragmentActivity implement
             @Override
             public void onClick(View v) {
 
+                Intent signUpActivity =  new Intent(UserLocationRegistrationActivity.this, SignUpActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putDouble(getString(R.string.latitude),latitude);
+                bundle.putDouble(getString(R.string.longitude),longitude);
+                bundle.putString(getString(R.string.phoneNo),phoneNumber);
+                bundle.putString(getString(R.string.cityNameKey),cityName);
+                signUpActivity.putExtras(bundle);
+                startActivity(signUpActivity);
             }
         });
     }
@@ -85,7 +98,9 @@ public class UserLocationRegistrationActivity extends FragmentActivity implement
                 mMap.addMarker(new MarkerOptions().position(latLng).title("My Default Location"));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                 try {
-                    Toast.makeText(UserLocationRegistrationActivity.this, getCityName(latLng,UserLocationRegistrationActivity.this), Toast.LENGTH_SHORT).show();
+                     cityName = getCityName(latLng,UserLocationRegistrationActivity.this);
+                    Toast.makeText(UserLocationRegistrationActivity.this, cityName + "1", Toast.LENGTH_SHORT).show();
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -108,6 +123,12 @@ public class UserLocationRegistrationActivity extends FragmentActivity implement
                 LatLng latLng = new LatLng(latitude, longitude);
                 mMap.addMarker(new MarkerOptions().position(latLng).title("My Default Location"));
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16.0f));
+                try {
+                    cityName = getCityName(latLng,UserLocationRegistrationActivity.this);
+                    Toast.makeText(UserLocationRegistrationActivity.this, cityName, Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 findViewById(R.id.autoDetectButton).setEnabled(true);
                 findViewById(R.id.doneUserLocation).setEnabled(true);
             }

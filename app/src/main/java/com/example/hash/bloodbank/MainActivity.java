@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        TwitterAuthConfig authConfig = new TwitterAuthConfig(getResources().getString(R.string.TWITTER_KEY), getResources().getString(R.string.TWITTER_SECRET));
+        TwitterAuthConfig authConfig = new TwitterAuthConfig(getResources().getString(R.string.digits_api_consumer_key), getResources().getString(R.string.digits_api_secret_key));
         Digits.Builder digitsBuilder = new Digits.Builder().withTheme(R.style.CustomDigitsTheme);
         Fabric.with(this, new TwitterCore(authConfig), digitsBuilder.build());
 
@@ -134,38 +134,7 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
 
-//
-//        //
-//        // End Of [Firebase Authentication as Anonymous User]
-//        //
-//
-//
-//        //
-//        // Start of [getIntent and conditional Db queries]
-//        //
 
-//        Intent intent = getIntent();
-//        userName = intent.getStringExtra(getResources().getString(R.string.userNameKeyValue));
-//        phoneNo = intent.getStringExtra(getResources().getString(R.string.phoneNo));
-//        imagePath = intent.getStringExtra(getResources().getString(R.string.userImageKey));
-//        cityName = intent.getStringExtra(getResources().getString(R.string.cityNameKey));
-//        bloodGroup = intent.getStringExtra(getResources().getString(R.string.blood_group));
-//        callingActivity = intent.getStringExtra(getResources().getString(R.string.callingActivity));
-
-//
-//        Log.d(TAG, "onCreate: Calling Activity is " + callingActivity);
-//        String signUpActivity = getString(R.string.SignUpActivity);
-//        Log.d(TAG, "onCreate: SignUpactivity : " + signUpActivity);
-//        if (Objects.equals(callingActivity, signUpActivity)) {
-//            //New User <> Save To DB
-//
-//
-////            downloadUrl = "NoUrl";
-//            country = getUserCountry(this);
-//            User user = new User(userName, bloodGroup, cityName, country, 0, 0, true);
-//            firebaseDbCom.writeToDBProfiles(user, phoneNo);
-//
-//        } else {
         phoneNo = Digits.getActiveSession().getPhoneNumber();
         if (phoneNo != null) {
 
@@ -219,79 +188,80 @@ public class MainActivity extends AppCompatActivity
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+                        // Commented Because I dont know why I added it on the first place.
 
                         // lat Long Check
-
-                        if (latitude == 0.0 && longitude == 0.0) {
-                            Toast.makeText(MainActivity.this, "Location not registered", Toast.LENGTH_SHORT).show();
-
-                            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-                            LocationListener mLocationListener = new LocationListener() {
-                                @Override
-                                public void onLocationChanged(final Location location) {
-
-
-                                    //your code here
-
-                                    latitude = location.getLatitude();
-                                    longitude = location.getLongitude();
-
-                                    if (latitude != 0.0 && longitude != 0.0) {
-                                        FirebaseDbCom firebaseDbCom = new FirebaseDbCom();
-                                        UserCoordinateClass userCoordinateClass = new UserCoordinateClass(latitude,longitude,phoneNo,userName);
-                                        firebaseDbCom.writeToDBUserCoords(userCoordinateClass);
-                                    }
-                                    else
-                                    {
-                                        Toast.makeText(MainActivity.this, "Unable to get user data", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-
-                                @Override
-                                public void onStatusChanged(String provider, int status, Bundle extras) {
-
-                                }
-
-                                @Override
-                                public void onProviderEnabled(String provider) {
-
-                                }
-
-                                @Override
-                                public void onProviderDisabled(String provider) {
-
-                                }
-                            };
-
-                            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
-                                    != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainActivity.this,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                                // TODO: Consider calling
-                                //    ActivityCompat#requestPermissions
-                                // here to request the missing permissions, and then overriding
-                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                //                                          int[] grantResults)
-                                // to handle the case where the user grants the permission. See the documentation
-                                // for ActivityCompat#requestPermissions for more details.
-
-                                ActivityCompat.requestPermissions(MainActivity.this,
-                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                                        MY_PERMISSIONS_REQUEST_LOCATION);
-
-
-
-                                //  return;
-                            }
-                            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
-                                    != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainActivity.this,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
-                            }
-
-                        } else {
-
-                        }
+//
+//                        if (latitude == 0.0 && longitude == 0.0) {
+//                            Toast.makeText(MainActivity.this, "Location not registered", Toast.LENGTH_SHORT).show();
+//
+//                            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+//
+//                            LocationListener mLocationListener = new LocationListener() {
+//                                @Override
+//                                public void onLocationChanged(final Location location) {
+//
+//
+//                                    //your code here
+//
+//                                    latitude = location.getLatitude();
+//                                    longitude = location.getLongitude();
+//
+//                                    if (latitude != 0.0 && longitude != 0.0) {
+//                                        FirebaseDbCom firebaseDbCom = new FirebaseDbCom();
+//                                        UserCoordinateClass userCoordinateClass = new UserCoordinateClass(latitude,longitude,phoneNo,userName);
+//                                        firebaseDbCom.writeToDBUserCoords(userCoordinateClass);
+//                                    }
+//                                    else
+//                                    {
+//                                        Toast.makeText(MainActivity.this, "Unable to get user data", Toast.LENGTH_SHORT).show();
+//                                    }
+//                                }
+//
+//                                @Override
+//                                public void onStatusChanged(String provider, int status, Bundle extras) {
+//
+//                                }
+//
+//                                @Override
+//                                public void onProviderEnabled(String provider) {
+//
+//                                }
+//
+//                                @Override
+//                                public void onProviderDisabled(String provider) {
+//
+//                                }
+//                            };
+//
+//                            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+//                                    != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainActivity.this,
+//                                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//                                // TODO: Consider calling
+//                                //    ActivityCompat#requestPermissions
+//                                // here to request the missing permissions, and then overriding
+//                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+//                                //                                          int[] grantResults)
+//                                // to handle the case where the user grants the permission. See the documentation
+//                                // for ActivityCompat#requestPermissions for more details.
+//
+//                                ActivityCompat.requestPermissions(MainActivity.this,
+//                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+//                                        MY_PERMISSIONS_REQUEST_LOCATION);
+//
+//
+//
+//                                //  return;
+//                            }
+//                            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+//                                    != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainActivity.this,
+//                                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//                                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListener);
+//                            }
+//
+//                        } else {
+//
+//                        }
                     }
 
                     @Override

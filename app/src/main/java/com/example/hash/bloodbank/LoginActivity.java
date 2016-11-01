@@ -31,7 +31,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_login);
-        TwitterAuthConfig authConfig = new TwitterAuthConfig(getResources().getString(R.string.TWITTER_KEY), getResources().getString(R.string.TWITTER_SECRET));
+        TwitterAuthConfig authConfig = new TwitterAuthConfig(getResources().getString(R.string.digits_api_consumer_key), getResources().getString(R.string.digits_api_secret_key));
         Digits.Builder digitsBuilder = new Digits.Builder().withTheme(R.style.CustomDigitsTheme);
         Fabric.with(this, new TwitterCore(authConfig), digitsBuilder.build());
 
@@ -39,7 +39,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             Log.d("Digits", "onCreate: Digits.getActiveSession().getPhoneNumber()  = " + Digits.getActiveSession().getPhoneNumber());
             Intent intent = new Intent(this,MainActivity.class);
             intent.putExtra(getString(R.string.phoneNo),Digits.getActiveSession().getPhoneNumber());
-            intent.putExtra(getString(R.string.callingActivity),R.string.LoginActivity);
+//            intent.putExtra(getString(R.string.callingActivity),R.string.LoginActivity);
             startActivity(intent);
 //        Direct To MainActivity
 
@@ -52,7 +52,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             public void success(DigitsSession session, String phoneNumber) {
                 // TODO: associate the session userID with your user model
                 Toast.makeText(getApplicationContext(), "Authentication successful for " + phoneNumber, Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
+                Intent intent = new Intent(LoginActivity.this, UserLocationRegistrationActivity.class);
                 intent.putExtra(getResources().getString(R.string.phoneNo), phoneNumber);
                 startActivity(intent);
             }

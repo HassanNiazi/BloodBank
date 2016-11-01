@@ -2,6 +2,7 @@ package com.example.hash.bloodbank;
 
 /**
  * Created by hash on 10/18/16.
+ * Save in DB based on city name for now.
  */
 
 public class UserCoordinateClass {

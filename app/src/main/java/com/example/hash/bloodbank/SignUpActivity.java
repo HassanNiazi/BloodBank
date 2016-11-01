@@ -47,12 +47,15 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
     private static final int MY_PERMISSIONS_REQUEST_CAMERA = 140;
     RoundedImageView imageView;
     EditText userName;
+    String cityName="City Name";
     String[] imageSource = {"Gallery", "Camera"};
     String[] bloodGroups = {"A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"};
     String phoneNumber;
     Button done;
     Uri downloadUrl;
     Bitmap bitmapUserImage;
+    double latitude;
+    double longitude;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
     private StorageReference mStorageRef;
@@ -80,8 +83,14 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
         setContentView(R.layout.activity_sign_up);
         imageView = (RoundedImageView) findViewById(R.id.roundedImageView);
         userName = (EditText) findViewById(R.id.userName);
+        //
         Intent intent = getIntent();
         phoneNumber = intent.getStringExtra(getResources().getString(R.string.phoneNo));
+        latitude = intent.getDoubleExtra(getString(R.string.latitude),0);
+        longitude = intent.getDoubleExtra(getString(R.string.longitude),0);
+        cityName = intent.getStringExtra(getString(R.string.cityNameKey));
+        ((EditText)findViewById(R.id.citySignUpEditText)).setText(cityName);
+        //
         done = (Button) findViewById(R.id.done_sign_up);
         findViewById(R.id.bloodGroupSignUpEditText).setOnClickListener(this);
         done.setOnClickListener(this);
@@ -250,8 +259,10 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
             Intent intent = new Intent(this, MainActivity.class);
             FirebaseDbCom firebaseDbCom = new FirebaseDbCom();
             User user = new User(userName.getText().toString(), ((TextView) findViewById(R.id.bloodGroupSignUpEditText)).getText().toString()
-                    , ((EditText) findViewById(R.id.citySignUpEditText)).getText().toString(), getUserCountry(this), 0, 0, true);
+                    , ((EditText) findViewById(R.id.citySignUpEditText)).getText().toString(), getUserCountry(this), latitude , longitude, true);
             firebaseDbCom.writeToDBProfiles(user, phoneNumber);
+            UserCoordinateClass coordinateClass = new UserCoordinateClass(latitude,longitude,phoneNumber,userName.getText().toString());
+            firebaseDbCom.writeToDBUserCoords(cityName,phoneNumber,coordinateClass);
             bitmapUserImage = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
             saveToFirebaseStorage(bitmapUserImage, phoneNumber);
             startActivity(intent);
@@ -266,7 +277,7 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        ((TextView) findViewById(R.id.bloodGroupSignUpEditText)).setText("Blood Group (" + bloodGroups[which] + ")");
+                        ((TextView) findViewById(R.id.bloodGroupSignUpEditText)).setText( bloodGroups[which] );
                     }
 
 

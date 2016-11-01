@@ -49,12 +49,16 @@ public class FirebaseDbCom {
         myRef.setValue(data);
     }
 
-    public void writeToDBUserCoords(Object data) {
+    public void writeToDBUserCoords(String city,String phoneNo,Object data) {
         DatabaseReference database = FirebaseDatabase.getInstance().getReference();
-        DatabaseReference myRef = database.child("userCoords");
+        DatabaseReference myRef = database.child("userCoords").child(city).child(phoneNo);
         myRef.setValue(data);
     }
 
+    public void readFromDBUserCoords(Object data) {
+        // We will need to implement query funcs like mentioned in the link below
+        // http://stackoverflow.com/questions/26700924/query-based-on-multiple-where-clauses-in-firebase
+    }
 
     public User readFromDBUserProfile(String phoneNo) {
 
