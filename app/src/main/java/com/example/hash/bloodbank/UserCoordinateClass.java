@@ -1,24 +1,31 @@
 package com.example.hash.bloodbank;
 
-/**
- * Created by hash on 10/18/16.
- * Save in DB based on city name for now.
- */
 
 public class UserCoordinateClass {
-    double lat;
-    double lng;
-    String phoneNo;
-    String name;
+    private double lat;
+    private double lng;
+    private String phoneNo;
+    private String name;
+    private String bloodGroup;
+
 
     public UserCoordinateClass() {
     }
 
-    public UserCoordinateClass(double lat, double lng, String phoneNo, String name) {
+    public UserCoordinateClass(double lat, double lng, String phoneNo, String name, String bloodGroup) {
         this.lat = lat;
         this.lng = lng;
         this.phoneNo = phoneNo;
         this.name = name;
+        this.bloodGroup = bloodGroup;
+    }
+
+    public String getBloodGroup() {
+        return bloodGroup;
+    }
+
+    public void setBloodGroup(String bloodGroup) {
+        this.bloodGroup = bloodGroup;
     }
 
     public double getLat() {

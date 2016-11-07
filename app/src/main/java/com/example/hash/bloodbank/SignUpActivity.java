@@ -261,7 +261,8 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
             User user = new User(userName.getText().toString(), ((TextView) findViewById(R.id.bloodGroupSignUpEditText)).getText().toString()
                     , ((EditText) findViewById(R.id.citySignUpEditText)).getText().toString(), getUserCountry(this), latitude , longitude, true);
             firebaseDbCom.writeToDBProfiles(user, phoneNumber);
-            UserCoordinateClass coordinateClass = new UserCoordinateClass(latitude,longitude,phoneNumber,userName.getText().toString());
+            UserCoordinateClass coordinateClass = new UserCoordinateClass(latitude,longitude,phoneNumber,userName.getText().toString(),
+                    ((TextView)findViewById(R.id.bloodGroupSignUpEditText)).getText().toString());
             firebaseDbCom.writeToDBUserCoords(cityName,phoneNumber,coordinateClass);
             bitmapUserImage = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
             saveToFirebaseStorage(bitmapUserImage, phoneNumber);

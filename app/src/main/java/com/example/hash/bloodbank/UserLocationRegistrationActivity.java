@@ -16,8 +16,6 @@ import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.widget.Toast;
 
-import com.digits.sdk.android.Digits;
-import com.google.android.gms.auth.api.signin.SignInAccount;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -34,9 +32,9 @@ public class UserLocationRegistrationActivity extends FragmentActivity implement
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 160;
     double latitude;
     double longitude;
-    private GoogleMap mMap;
     String phoneNumber;
     String cityName = "-_-";
+    private GoogleMap mMap;
 
 // TODO Add a waiting circular notation while the device is getting data from the gps
 
@@ -60,13 +58,12 @@ public class UserLocationRegistrationActivity extends FragmentActivity implement
         findViewById(R.id.doneUserLocation).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                Intent signUpActivity =  new Intent(UserLocationRegistrationActivity.this, SignUpActivity.class);
+                Intent signUpActivity = new Intent(UserLocationRegistrationActivity.this, SignUpActivity.class);
                 Bundle bundle = new Bundle();
-                bundle.putDouble(getString(R.string.latitude),latitude);
-                bundle.putDouble(getString(R.string.longitude),longitude);
-                bundle.putString(getString(R.string.phoneNo),phoneNumber);
-                bundle.putString(getString(R.string.cityNameKey),cityName);
+                bundle.putDouble(getString(R.string.latitude), latitude);
+                bundle.putDouble(getString(R.string.longitude), longitude);
+                bundle.putString(getString(R.string.phoneNo), phoneNumber);
+                bundle.putString(getString(R.string.cityNameKey), cityName);
                 signUpActivity.putExtras(bundle);
                 startActivity(signUpActivity);
             }
@@ -98,7 +95,7 @@ public class UserLocationRegistrationActivity extends FragmentActivity implement
                 mMap.addMarker(new MarkerOptions().position(latLng).title("My Default Location"));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                 try {
-                     cityName = getCityName(latLng,UserLocationRegistrationActivity.this);
+                    cityName = getCityName(latLng, UserLocationRegistrationActivity.this);
                     Toast.makeText(UserLocationRegistrationActivity.this, cityName + "1", Toast.LENGTH_SHORT).show();
 
                 } catch (IOException e) {
@@ -124,7 +121,7 @@ public class UserLocationRegistrationActivity extends FragmentActivity implement
                 mMap.addMarker(new MarkerOptions().position(latLng).title("My Default Location"));
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16.0f));
                 try {
-                    cityName = getCityName(latLng,UserLocationRegistrationActivity.this);
+                    cityName = getCityName(latLng, UserLocationRegistrationActivity.this);
                     Toast.makeText(UserLocationRegistrationActivity.this, cityName, Toast.LENGTH_SHORT).show();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -152,20 +149,10 @@ public class UserLocationRegistrationActivity extends FragmentActivity implement
         if (ActivityCompat.checkSelfPermission(UserLocationRegistrationActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(UserLocationRegistrationActivity.this,
                 android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-
             ActivityCompat.requestPermissions(UserLocationRegistrationActivity.this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION},
                     MY_PERMISSIONS_REQUEST_LOCATION);
 
-
-            //  return;
         }
         if (ActivityCompat.checkSelfPermission(UserLocationRegistrationActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(UserLocationRegistrationActivity.this,

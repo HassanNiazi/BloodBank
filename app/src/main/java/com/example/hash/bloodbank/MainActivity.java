@@ -284,9 +284,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 Toast.makeText(MainActivity.this, "Work in Progress", Toast.LENGTH_SHORT).show();
-
             }
         });
 
@@ -516,6 +514,9 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_map) {
 
             Intent intent = new Intent(this, MapsActivity.class);
+            intent.putExtra(getString(R.string.cityNameKey),cityName);
+            intent.putExtra(getString(R.string.latitude),latitude);
+            intent.putExtra(getString(R.string.longitude),longitude);
             startActivity(intent);
 
         } else if (id == R.id.nav_personlization) {

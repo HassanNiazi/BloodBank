@@ -11,6 +11,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.List;
+
 /**
  * Hassan Niazi - Blood Bank Application Test Project 2
  * Created by hash on 9/27/16.
@@ -55,9 +57,25 @@ public class FirebaseDbCom {
         myRef.setValue(data);
     }
 
-    public void readFromDBUserCoords(Object data) {
-        // We will need to implement query funcs like mentioned in the link below
-        // http://stackoverflow.com/questions/26700924/query-based-on-multiple-where-clauses-in-firebase
+    public List<UserCoordinateClass> readFromDBUserCoords(String city) {
+        final List<UserCoordinateClass> userCoordinateClassList = null;
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("userCoords");
+        databaseReference.child(city).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                for(DataSnapshot snapshot:  dataSnapshot.getChildren())
+                {
+                   UserCoordinateClass coordinateClassObject = snapshot.getValue(UserCoordinateClass.class);
+                   userCoordinateClassList.add(coordinateClassObject);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        return userCoordinateClassList;
     }
 
     public User readFromDBUserProfile(String phoneNo) {
